@@ -110,9 +110,27 @@ def save_gif(
         frames = [frame for frame in clip]
     else:
         frames = list(clip)
-    imageio.mimsave(path.as_posix(), frames, duration=duration)
+    imageio.mimsave(path.as_posix(), frames, duration=duration)\
 
+def tensor_video_to_gif(video: torch.Tensor, path: str, duration: float = 0.1):
+    """
+    video: (T, 1, H, W) or (T, H, W), values in [0,1] or [0,255]
+    path: output gif path, e.g. "debug.gif"
+    """
+    if video.dim() == 4:  # (T,1,H,W)
+        video = video[:, 0]  # -> (T,H,W)
 
+    video = video.detach().cpu().float()
+    vmin, vmax = video.min(), video.max()
+    if vmax <= 1.0:  # assume [0,1]
+        video = video * 255.0
+
+    video = video.clamp(0, 255).byte().numpy()  # (T,H,W), uint8
+
+    frames = [frame for frame in video]  # grayscale frames
+    imageio.mimsave(path, frames, duration=duration)
+    print(f"Saved GIF to {path}")
+    
 if __name__ == "__main__":
     vid = make_sliding_digits([1, 2, 3, 4])  # (16, 32, 32)
     save_gif("digits.gif", vid, duration=0.1)

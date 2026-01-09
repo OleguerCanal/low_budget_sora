@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "low-budget-sora"
+version = "0.1.0"
+description = "Low-budget SORA experiments (tiny video generation utilities)."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "oleguer" }]
+dependencies = [
+  "imageio>=2.31",
+  "numpy>=1.23",
+  "Pillow>=10.0",
+]
+
+[project.urls]
+Repository = "https://github.com/oleguer/low-budget-sora"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+

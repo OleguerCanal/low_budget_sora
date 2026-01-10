@@ -110,7 +110,7 @@ def save_gif(
         frames = [frame for frame in clip]
     else:
         frames = list(clip)
-    imageio.mimsave(path.as_posix(), frames, duration=duration)\
+    imageio.mimsave(path.as_posix(), frames, duration=duration)
 
 def tensor_video_to_gif(video: torch.Tensor, path: str, duration: float = 0.1):
     """

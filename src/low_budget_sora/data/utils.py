@@ -10,6 +10,7 @@ import imageio.v2 as imageio
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
+from low_budget_sora import COMIC_SANS_MS_FONT_PATH
 
 def _default_font_paths() -> list[str]:
     """
@@ -48,11 +49,13 @@ def random_font(
 
 
 def make_sliding_digits(
-    nums: Sequence[int] | Sequence[str],
+    sequence: Sequence[int] | Sequence[str],
     *,
     T: int = 16,
     H: int = 32,
     W: int = 32,
+    randomize_font: bool = False,
+    randomize_color: bool = False,
     seed: int | None = None,
     font_paths: Sequence[str] | None = None,
 ) -> np.ndarray:
@@ -69,9 +72,10 @@ def make_sliding_digits(
     if seed is not None:
         random.seed(seed)
 
-    text = "".join(str(n) for n in nums)
-    font = random_font(font_paths=font_paths)
-
+    text = "".join(str(char) for char in sequence)
+    font = random_font(font_paths=font_paths) if randomize_font else\
+        ImageFont.truetype(COMIC_SANS_MS_FONT_PATH, size=34)
+    
     tmp = Image.new("L", (1, 1), 0)
     d = ImageDraw.Draw(tmp)
     bbox = d.textbbox((0, 0), text, font=font)
@@ -81,13 +85,14 @@ def make_sliding_digits(
     x_start = W + margin
     x_end = -tw - margin
     y = (H - th) // 2
+    y = -10
 
     frames: list[np.ndarray] = []
     for t in range(T):
         x = int(x_start + (x_end - x_start) * t / (T - 1))
         img = Image.new("L", (W, H), 0)
         draw = ImageDraw.Draw(img)
-        color = random.randint(200, 255)
+        color = random.randint(200, 255) if randomize_color else 255
         draw.text((x, y), text, font=font, fill=color)
         frames.append(np.array(img, dtype=np.uint8))
 
@@ -131,7 +136,26 @@ def tensor_video_to_gif(video: torch.Tensor, path: str, duration: float = 0.1):
     imageio.mimsave(path, frames, duration=duration)
     print(f"Saved GIF to {path}")
     
+def console_print(frame):    
+    for i in range(frame.shape[0]):
+        for j in range(frame.shape[1]):
+            if frame[i, j] > 128:
+                print("⬜", end="")
+            else:
+                print("🟥", end="")
+        print()
+
 if __name__ == "__main__":
-    vid = make_sliding_digits([1, 2, 3, 4])  # (16, 32, 32)
+    sequence = ["O", "L", "E", "G", "U", "E", "R"]
+    vid = make_sliding_digits(sequence)  # (16, 32, 32)
+    console_print(vid[0])
+    print()
+    console_print(vid[1])
+    print()
+    console_print(vid[2])
+    print()
+    console_print(vid[3])
     save_gif("digits.gif", vid, duration=0.1)
+    
+    print("Percentage of white pixels: ", np.sum(vid > 128) / (16 * 32 * 32))
     print("Saved to digits.gif")

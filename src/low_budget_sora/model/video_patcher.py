@@ -1,5 +1,8 @@
+from functools import cached_property
+
 import torch
 import torch.nn as nn
+
 
 class VideoPatcher(nn.Module):
     """
@@ -37,8 +40,13 @@ class VideoPatcher(nn.Module):
         self.h_blocks = H // ph
         self.w_blocks = W // pw
 
-        self.num_patches = self.t_blocks * self.h_blocks * self.w_blocks  # Total number of patches
-        self.patch_dim = pt * ph * pw * C  # Flattened block dimension
+    @cached_property
+    def num_patches(self) -> int:
+        return self.t_blocks * self.h_blocks * self.w_blocks
+
+    @cached_property
+    def patch_dim(self) -> int:
+        return self.pt * self.ph * self.pw * self.C
 
     def patchify(self, x: torch.Tensor) -> torch.Tensor:
         """

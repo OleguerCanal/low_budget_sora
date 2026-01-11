@@ -11,6 +11,14 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal"
+        },
+
+        {
+            "name": "Train",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "src/low_budget_sora/training/train.py",
+            "console": "integratedTerminal"
         }
     ]
 }

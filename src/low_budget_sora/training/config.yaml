@@ -1,0 +1,36 @@
+shapes:
+  video:
+    T: 16
+    H: 32
+    W: 32
+    C: 1
+  patches:
+    pt: 2
+    ph: 4
+    pw: 4
+
+data:
+  n_train_samples: 100_000
+  n_val_samples: 1_000
+  seed: 42
+  pad_token: 0
+  prompt_len: 8
+
+model:
+  noise_scheduler_steps: 400
+  prompt_vocab_size: 42  # actually 37 but reserved some tokens
+  hidden_dim: 64
+  num_layers: 4
+  num_heads: 8
+  mlp_ratio: 4
+
+training:
+  lr: 1.e-4
+  precision: "16-mixed"
+  max_epochs: 1
+  batch_size: 62
+  num_workers: 4
+  prefetch_factor: 32
+  devices: 1
+
+  save_path: "checkpoints"

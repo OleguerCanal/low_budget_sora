@@ -48,9 +48,8 @@ def random_font(
     return ImageFont.load_default()
 
 
-def make_sliding_digits(
-    sequence: Sequence[int] | Sequence[str],
-    *,
+def make_sliding_chars(
+    sequence: str,
     T: int = 16,
     H: int = 32,
     W: int = 32,
@@ -103,7 +102,7 @@ def save_gif(
     out_path: str | os.PathLike[str],
     clip: np.ndarray | Iterable[np.ndarray],
     *,
-    duration: float = 0.1,
+    fps: float = 5,
 ) -> None:
     """
     Save a grayscale clip to a GIF.
@@ -115,9 +114,9 @@ def save_gif(
         frames = [frame for frame in clip]
     else:
         frames = list(clip)
-    imageio.mimsave(path.as_posix(), frames, duration=duration)
+    imageio.mimsave(path.as_posix(), frames, format="GIF", fps=5)
 
-def tensor_video_to_gif(video: torch.Tensor, path: str, duration: float = 0.1):
+def tensor_video_to_gif(video: torch.Tensor, path: str, fps: float = 5):
     """
     video: (T, 1, H, W) or (T, H, W), values in [0,1] or [0,255]
     path: output gif path, e.g. "debug.gif"
@@ -127,13 +126,12 @@ def tensor_video_to_gif(video: torch.Tensor, path: str, duration: float = 0.1):
 
     video = video.detach().cpu().float()
     vmin, vmax = video.min(), video.max()
-    if vmax <= 1.0:  # assume [0,1]
-        video = video * 255.0
+    video = (video - vmin / (vmax - vmin)) * 255.0
 
     video = video.clamp(0, 255).byte().numpy()  # (T,H,W), uint8
 
     frames = [frame for frame in video]  # grayscale frames
-    imageio.mimsave(path, frames, duration=duration)
+    imageio.mimsave(path, frames, format="GIF", fps=fps)
     print(f"Saved GIF to {path}")
     
 def console_print(frame):    
@@ -146,8 +144,9 @@ def console_print(frame):
         print()
 
 if __name__ == "__main__":
-    sequence = ["O", "L", "E", "G", "U", "E", "R"]
-    vid = make_sliding_digits(sequence)  # (16, 32, 32)
+    # sequence = ["O", "L", "E", "G", "U", "E", "R"]
+    sequence = "O"
+    vid = make_sliding_chars(sequence)  # (16, 32, 32)
     console_print(vid[0])
     print()
     console_print(vid[1])
@@ -155,7 +154,7 @@ if __name__ == "__main__":
     console_print(vid[2])
     print()
     console_print(vid[3])
-    save_gif("digits.gif", vid, duration=0.1)
+    save_gif("digits.gif", vid, fps=5)
     
     print("Percentage of white pixels: ", np.sum(vid > 128) / (16 * 32 * 32))
     print("Saved to digits.gif")

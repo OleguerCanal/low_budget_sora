@@ -7,10 +7,9 @@ class NoiseScheduler(nn.Module):
             num_steps: int, 
             beta_start=1e-4, 
             beta_end=0.02, 
-            device="cpu",
         ):
         super().__init__()
-        betas = torch.linspace(beta_start, beta_end, num_steps, device=device)  # (T,)
+        betas = torch.linspace(beta_start, beta_end, num_steps)  # (T,)
         alphas = 1.0 - betas
         alphas_cumprod = torch.cumprod(alphas, dim=0)                           # (T,)
 
@@ -21,7 +20,12 @@ class NoiseScheduler(nn.Module):
         self.register_buffer("sqrt_one_minus_alphas_cumprod",
                              torch.sqrt(1.0 - alphas_cumprod))
 
-    def q_sample(self, x0: torch.Tensor, t: torch.Tensor, noise: torch.Tensor | None = None):
+    def q_sample(
+            self,
+            x0: torch.Tensor,
+            t: torch.Tensor,
+            noise: torch.Tensor = None,
+        ) -> torch.Tensor:
         """
         x0:    (B, T, C, H, W) or any shape (B, ...)
         t:     (B,) LongTensor with values in [0, num_steps-1]
@@ -36,3 +40,22 @@ class NoiseScheduler(nn.Module):
         sqrt_om = self.sqrt_one_minus_alphas_cumprod[t].view(-1, *([1] * (x0.dim() - 1)))
 
         return sqrt_ac * x0 + sqrt_om * noise
+
+
+
+if __name__ == "__main__":
+    device = torch.device("cuda:0")
+    scheduler = NoiseScheduler(num_steps=10, device=device)
+    
+    print("\nbetas: ")
+    print(scheduler.betas)
+    print("\nalphas: ")
+    print(1.0 - scheduler.betas)
+    print("\nalphas_cumprod: ")
+    print(scheduler.alphas_cumprod)
+    print("\nsqrt_alphas_cumprod: ")
+    print(scheduler.sqrt_alphas_cumprod)
+    print("\nsqrt_one_minus_alphas_cumprod: ")
+    print(scheduler.sqrt_one_minus_alphas_cumprod)
+    
+    print("Done")

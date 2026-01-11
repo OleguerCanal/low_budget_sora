@@ -88,7 +88,6 @@ class DiffusionTransformer(nn.Module):
     ):
         super().__init__()
         
-        self.device = video_patcher.device
         self.hidden_dim = hidden_dim
 
         self.video_patcher = video_patcher

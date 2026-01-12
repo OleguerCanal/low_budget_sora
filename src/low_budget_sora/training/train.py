@@ -1,3 +1,4 @@
+import os
 import yaml
 
 import lightning as L
@@ -13,11 +14,16 @@ from low_budget_sora.model.diffusion_transformer import DiffusionTransformer
 from low_budget_sora.model.pl_model import DiffusionTransformerLitModule
 from low_budget_sora.model.noise_scheduler import NoiseScheduler
 
+
+
 def get_datasets(config: dict):
+    local_rank = int(os.environ.get("LOCAL_RANK", 0))
+
     sampler = SequenceSampler(
         num_training_examples=config["data"]["n_train_samples"],
         num_validation_examples=config["data"]["n_val_samples"],
-        seed=config["data"]["seed"],
+        val_seed=config["data"]["seed"],
+        train_seed=local_rank,
     )
     train_ds = SlidingCharsDataset(
         sampler=sampler,
@@ -87,6 +93,14 @@ if __name__ == "__main__":
     # Model
     pl_model = get_model(config)
     
+    # Logger
+    wandb_logger = L.pytorch.loggers.WandbLogger(
+        entity="oleguer_canal-waveshot",
+        project="low-budget-sora",
+        name=None,  # auto-generates a run name, or set your own
+        config=config,  # logs your full config to wandb
+    )
+    
     # Train
     trainer = Trainer(
         max_epochs=config["training"]["max_epochs"],
@@ -97,7 +111,8 @@ if __name__ == "__main__":
         precision=config["training"]["precision"],
         default_root_dir=CHECKPOINTS_DIR,
         log_every_n_steps=10,
-        val_check_interval=0.2,
+        val_check_interval=0.1,
+        logger=wandb_logger,
         callbacks=[
             ModelCheckpoint(
                 monitor="val_loss",

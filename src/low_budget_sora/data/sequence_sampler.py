@@ -13,15 +13,17 @@ class SequenceSampler:
             min_len: int = 1,
             max_len: int = 6,
             chars: list[str] = DEFAULT_CHARS,
-            seed: Optional[int] = 0,
+            val_seed: int = 0,
+            train_seed: int = 1,
         ):
+        print(f"Initialized sampler with val_seed={val_seed} and train_seed={train_seed}")
         self.num_training_examples = num_training_examples
         
         self.min_len, self.max_len = min_len, max_len
         self.chars = chars
 
-        self._val_rng = random.Random(seed)
-        self._train_rng = random.Random(seed + 1)
+        self._val_rng = random.Random(val_seed)
+        self._train_rng = random.Random(train_seed)
         self._create_val_dataset(n=num_validation_examples)
         
 
@@ -49,7 +51,7 @@ class SequenceSampler:
         # - 1 because we want to remove the padding token
         return "".join([self.chars[token - 1] for token in tokens])
 
-    def _format(self, sequence: str) -> list[int]:
+    def format(self, sequence: str) -> list[int]:
         return {
             "sequence": sequence,
             "tokens": self.tokenize(sequence),
@@ -59,17 +61,18 @@ class SequenceSampler:
     def __len__(self) -> int:
         return self.num_training_examples
 
-    def __getitem__(self, idx: int, split: Literal["train", "val"] = "train") -> str:
+    def get_item(self, idx: int, split: Literal["train", "val"]) -> str:
         if split == "train":
             sample = self.sample(self._train_rng)
             while sample in self.val_set:
                 sample = self.sample(self._train_rng)
-            return self._format(sample)
+            return self.format(sample)
                 
         if split == "val":
-            return self._format(self.val_list[idx])
+            return self.format(self.val_list[idx])
         
         raise ValueError(f"Invalid split: {split}")
+    
 
 if __name__ == "__main__":
     import time
@@ -86,11 +89,11 @@ if __name__ == "__main__":
     print(f"Number of validation examples: {len(sampler.val_list)}")
     
     print("Training examples:")
-    te = [sampler[i, "train"] for i in range(30)]
+    te = [sampler.get_item(i, "train") for i in range(30)]
     print(te)
     
     print("\nValidation examples:")
-    ve = [sampler[i, "val"] for i in range(30)]
+    ve = [sampler.get_item(i, "val") for i in range(30)]
     print(ve)
     
     # print(l en(sampler.DEFAULT_CHARS))

@@ -122,7 +122,7 @@ def tensor_video_to_gif(video: torch.Tensor, path: str, fps: float = 5):
     path: output gif path, e.g. "debug.gif"
     """
     if video.dim() == 4:  # (T,1,H,W)
-        video = video[:, 0]  # -> (T,H,W)
+        video = video[:, 0, ...]  # -> (T,H,W)
 
     video = video.detach().cpu().float()
     vmin, vmax = video.min(), video.max()

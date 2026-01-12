@@ -31,8 +31,16 @@ class SlidingCharsDataset(Dataset):
             return len(self.sampler.val_list)
         raise ValueError(f"Invalid split: {self.split}")
 
+
     def __getitem__(self, idx):
-        sample = self.sampler[idx, self.split]              # e.g. [3, 1, 4]
+        sample = self.sampler.get_item(idx, self.split)              # e.g. [3, 1, 4]
+        return self._generate(sample)
+        
+    def generate_custom(self, sequence: str) -> torch.Tensor:
+        sample = self.sampler.format(sequence)
+        return self._generate(sample)
+
+    def _generate(self, sample: dict) -> torch.Tensor:
         video = make_sliding_chars(
             sequence=sample["sequence"],
             T=self.T,
@@ -55,7 +63,6 @@ class SlidingCharsDataset(Dataset):
             "prompt_ids": prompt, # (max_len,)
             "length": L,
         }
-
 
 # ---- example usage ----
 if __name__ == "__main__":

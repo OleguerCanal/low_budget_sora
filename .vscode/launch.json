@@ -19,6 +19,14 @@
             "request": "launch",
             "program": "src/low_budget_sora/training/train.py",
             "console": "integratedTerminal"
+        },
+
+        {
+            "name": "Inference",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "src/low_budget_sora/inference.py",
+            "console": "integratedTerminal"
         }
     ]
 }

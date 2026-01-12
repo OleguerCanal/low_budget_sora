@@ -45,7 +45,7 @@ class NoiseScheduler(nn.Module):
 
 if __name__ == "__main__":
     device = torch.device("cuda:0")
-    scheduler = NoiseScheduler(num_steps=10, device=device)
+    scheduler = NoiseScheduler(num_steps=10).to(device)
     
     print("\nbetas: ")
     print(scheduler.betas)

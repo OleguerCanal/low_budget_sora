@@ -167,12 +167,10 @@ class DiffusionTransformer(nn.Module):
         # Bias according to the diffusion timestep
         sinusoidal_proj = sinusoidal_diffusion_timestep_embedding(diffusion_timestep, self.hidden_dim)
         diffusion_timestep_bias = self.diffusion_timestep_proj(sinusoidal_proj).unsqueeze(1)  # to allow broadcasting
-        x_t = x_t + diffusion_timestep_bias
-        
-        # OBS: It seems diffusion_timestep_bias should be added in every layer, not only the first one.
 
         # Apply transformer layers
         for layer in self.layers:
+            x_t = x_t + diffusion_timestep_bias
             x_t = layer(
                 x=x_t,
                 cond=prompt_embed,

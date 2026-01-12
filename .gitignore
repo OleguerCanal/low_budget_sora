@@ -217,3 +217,8 @@ __marimo__/
 
 
 checkpoints/
+wandb/
+training/nh.out
+explainability/old
+/*.gif
+*.out
